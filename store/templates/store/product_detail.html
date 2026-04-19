@@ -1,0 +1,478 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JAVSTAY – {{ product.name }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; }
+    .navbar { background: linear-gradient(135deg, #1a1f2e, #2d3561) !important; }
+    .cart-badge { position:absolute; top:-6px; right:-6px; background:#ef4444; color:white; border-radius:50%; width:18px; height:18px; font-size:10px; display:flex; align-items:center; justify-content:center; }
+
+    /* ── Product Image Gallery ── */
+    .main-img-wrap { border-radius: 20px; overflow: hidden; background: white; box-shadow: 0 4px 20px rgba(0,0,0,.08); position: sticky; top: 20px; }
+    .main-img { width: 100%; height: 420px; object-fit: contain; padding: 20px; }
+    .main-img-placeholder { width: 100%; height: 420px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #e9ecef, #dee2e6); }
+
+    /* ── Product Info ── */
+    .product-info-card { background: white; border-radius: 20px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+    .price-tag { font-size: 2.4rem; font-weight: 800; color: #0d6efd; line-height: 1; }
+    .stock-badge-instock { background: #d1fae5; color: #065f46; border-radius: 30px; padding: 5px 14px; font-size: 13px; font-weight: 600; }
+    .stock-badge-low     { background: #fef3c7; color: #92400e; border-radius: 30px; padding: 5px 14px; font-size: 13px; font-weight: 600; }
+    .stock-badge-out     { background: #fee2e2; color: #991b1b; border-radius: 30px; padding: 5px 14px; font-size: 13px; font-weight: 600; }
+
+    /* ── Buttons ── */
+    .btn-buy-now { background: linear-gradient(135deg, #0d6efd, #6610f2); border: none; color: white; border-radius: 14px; padding: 14px 32px; font-size: 16px; font-weight: 700; transition: transform .15s, box-shadow .15s; }
+    .btn-buy-now:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(13,110,253,.35); color: white; }
+    .btn-add-cart { background: white; border: 2px solid #0d6efd; color: #0d6efd; border-radius: 14px; padding: 13px 32px; font-size: 16px; font-weight: 700; transition: all .15s; }
+    .btn-add-cart:hover { background: #0d6efd; color: white; transform: translateY(-2px); }
+
+    /* ── Stars ── */
+    .star { color: #d1d5db; font-size: 20px; cursor: pointer; transition: color .1s; }
+    .star.filled, .star:hover, .star.hover { color: #f59e0b; }
+    .star-sm { color: #f59e0b; font-size: 14px; }
+    .star-sm.empty { color: #d1d5db; }
+    .avg-score { font-size: 3rem; font-weight: 800; color: #1a1f2e; line-height: 1; }
+
+    /* ── Reviews ── */
+    .review-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,.05); margin-bottom: 16px; border-left: 4px solid #e9ecef; }
+    .review-card.mine { border-left-color: #0d6efd; }
+    .reviewer-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,#0d6efd,#6610f2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+
+    /* ── Rating bars ── */
+    .rating-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .rating-bar-label { font-size: 13px; color: #6c757d; width: 30px; text-align: right; flex-shrink: 0; }
+    .rating-bar-track { flex: 1; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; }
+    .rating-bar-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #f97316); border-radius: 4px; transition: width .5s ease; }
+    .rating-bar-count { font-size: 12px; color: #adb5bd; width: 20px; flex-shrink: 0; }
+
+    /* ── Related ── */
+    .related-card { background: white; border-radius: 14px; overflow: hidden; text-decoration: none; color: inherit; display: block; box-shadow: 0 2px 10px rgba(0,0,0,.06); transition: transform .2s, box-shadow .2s; }
+    .related-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,.1); color: inherit; }
+    .related-img { width: 100%; height: 140px; object-fit: cover; }
+    .related-placeholder { width: 100%; height: 140px; background: linear-gradient(135deg,#e9ecef,#dee2e6); display: flex; align-items: center; justify-content: center; }
+
+    /* ── Info Pills ── */
+    .info-pill { background: #f8f9fa; border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+    .info-pill i { font-size: 1.3rem; }
+
+    /* ── Qty Picker ── */
+    .qty-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid #dee2e6; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; font-weight: 600; }
+    .qty-btn:hover { background: #0d6efd; color: white; border-color: #0d6efd; }
+    .qty-display { width: 50px; text-align: center; font-weight: 700; font-size: 16px; border: 1px solid #dee2e6; border-radius: 8px; padding: 6px 0; }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark px-4 py-3">
+  <a class="navbar-brand fw-bold" href="{% url 'shop' %}"><i class="bi bi-shop me-2"></i>JAVSTAY</a>
+  <div class="d-flex gap-3 align-items-center ms-auto">
+    {% if user.is_authenticated %}
+      <span class="text-white-50 small d-none d-md-block">Hi, {{ user.username }}</span>
+      <a href="{% url 'cart' %}" class="btn btn-outline-light btn-sm position-relative">
+        <i class="bi bi-cart3"></i> Cart
+        {% if cart_count %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+      </a>
+      <a href="{% url 'buyer_dashboard' %}" class="btn btn-outline-light btn-sm">My Account</a>
+      <form method="post" action="{% url 'logout' %}" style="margin:0">{% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger btn-sm">Logout</button>
+      </form>
+    {% else %}
+      <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm">Login</a>
+      <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Register</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- Breadcrumb -->
+<div class="container pt-3 pb-1">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-0" style="font-size:13px;">
+      <li class="breadcrumb-item"><a href="{% url 'shop' %}" class="text-decoration-none">Shop</a></li>
+      {% if product.category %}<li class="breadcrumb-item text-muted">{{ product.category }}</li>{% endif %}
+      <li class="breadcrumb-item active text-truncate" style="max-width:200px;">{{ product.name }}</li>
+    </ol>
+  </nav>
+</div>
+
+{% if messages %}
+<div class="container mt-2">
+  {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show py-2">
+      {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Main Product Section -->
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- Image Column -->
+    <div class="col-lg-5">
+      <div class="main-img-wrap">
+        {% if product.image %}
+          <img src="{{ product.image.url }}" class="main-img" alt="{{ product.name }}" id="mainImage">
+        {% else %}
+          <div class="main-img-placeholder">
+            <i class="bi bi-box-seam" style="font-size:6rem; color:#adb5bd;"></i>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Trust badges -->
+      <div class="row g-2 mt-3">
+        <div class="col-4">
+          <div class="info-pill justify-content-center flex-column text-center">
+            <i class="bi bi-shield-check text-success"></i>
+            <span style="font-size:11px;color:#6c757d;">Secure</span>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="info-pill justify-content-center flex-column text-center">
+            <i class="bi bi-truck text-primary"></i>
+            <span style="font-size:11px;color:#6c757d;">Fast Delivery</span>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="info-pill justify-content-center flex-column text-center">
+            <i class="bi bi-arrow-counterclockwise text-warning"></i>
+            <span style="font-size:11px;color:#6c757d;">Easy Returns</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Info Column -->
+    <div class="col-lg-7">
+      <div class="product-info-card">
+
+        <!-- Category & Seller -->
+        <div class="d-flex align-items-center gap-2 mb-2">
+          {% if product.category %}
+            <span class="badge" style="background:#e3f2fd;color:#0d6efd;font-size:12px;">{{ product.category }}</span>
+          {% endif %}
+          {% if product.seller %}
+            <span class="badge" style="background:#e8f5e9;color:#198754;font-size:12px;">
+              <i class="bi bi-shop me-1"></i>{{ product.seller.business_name }}
+            </span>
+          {% endif %}
+          <span class="text-muted" style="font-size:12px;">SKU: {{ product.sku }}</span>
+        </div>
+
+        <h2 class="fw-bold mb-2" style="line-height:1.2;">{{ product.name }}</h2>
+
+        <!-- Star Rating Summary -->
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div>
+            {% for i in range5 %}
+              <i class="bi bi-star{% if i <= avg_rating %}-fill{% endif %} star-sm {% if i > avg_rating %}empty{% endif %}"></i>
+            {% endfor %}
+          </div>
+          <span class="fw-semibold" style="font-size:14px;">{{ avg_rating }}</span>
+          <span class="text-muted" style="font-size:13px;">({{ review_count }} review{{ review_count|pluralize }})</span>
+          <a href="#reviews-section" class="text-primary text-decoration-none" style="font-size:13px;">See all reviews</a>
+        </div>
+
+        <!-- Price -->
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="price-tag">₹{{ product.selling_price }}</span>
+          {% if product.stock_qty == 0 %}
+            <span class="stock-badge-out"><i class="bi bi-x-circle me-1"></i>Out of Stock</span>
+          {% elif product.stock_qty <= 5 %}
+            <span class="stock-badge-low"><i class="bi bi-exclamation-triangle me-1"></i>Only {{ product.stock_qty }} left!</span>
+          {% else %}
+            <span class="stock-badge-instock"><i class="bi bi-check-circle me-1"></i>In Stock</span>
+          {% endif %}
+        </div>
+
+        <!-- Description -->
+        {% if product.description %}
+        <div class="mb-4">
+          <h6 class="fw-bold mb-2">About this product</h6>
+          <p class="text-muted" style="line-height:1.7;">{{ product.description }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Product Details Table -->
+        <div class="mb-4">
+          <h6 class="fw-bold mb-2">Product Details</h6>
+          <table class="table table-sm table-borderless mb-0" style="font-size:13px;">
+            <tr><td class="text-muted" style="width:130px;">Category</td><td class="fw-semibold">{{ product.category|default:"—" }}</td></tr>
+            <tr><td class="text-muted">SKU</td><td class="fw-semibold"><code>{{ product.sku }}</code></td></tr>
+            {% if product.seller %}<tr><td class="text-muted">Sold by</td><td class="fw-semibold">{{ product.seller.business_name }}</td></tr>{% endif %}
+            <tr><td class="text-muted">Availability</td>
+              <td class="fw-semibold {% if product.stock_qty == 0 %}text-danger{% else %}text-success{% endif %}">
+                {% if product.stock_qty == 0 %}Out of Stock{% else %}{{ product.stock_qty }} units available{% endif %}
+              </td>
+            </tr>
+            <tr><td class="text-muted">Listed on</td><td class="fw-semibold">{{ product.created_at|date:"d M Y" }}</td></tr>
+          </table>
+        </div>
+
+        <!-- Quantity & Action Buttons -->
+        {% if product.stock_qty > 0 %}
+          {% if user.is_authenticated %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold mb-2">Quantity</label>
+            <div class="d-flex align-items-center gap-2">
+              <button class="qty-btn" onclick="changeQty(-1)" type="button">−</button>
+              <input type="number" id="qtyInput" class="qty-display" value="1" min="1" max="{{ product.stock_qty }}" readonly>
+              <button class="qty-btn" onclick="changeQty(1)" type="button">+</button>
+              <span class="text-muted small ms-2">Max: {{ product.stock_qty }}</span>
+            </div>
+          </div>
+          <div class="d-flex gap-3">
+            <!-- Buy Now -->
+            <a href="{% url 'buy_now' product.pk %}" class="btn btn-buy-now flex-grow-1">
+              <i class="bi bi-lightning-fill me-2"></i>Buy Now
+            </a>
+            <!-- Add to Cart -->
+            <a href="{% url 'cart_add' product.pk %}" class="btn btn-add-cart flex-grow-1">
+              <i class="bi bi-cart-plus me-2"></i>Add to Cart
+            </a>
+          </div>
+          <div class="mt-2 text-center">
+            <small class="text-muted"><i class="bi bi-shield-lock me-1"></i>Secure checkout · Cash on Delivery available</small>
+          </div>
+          {% else %}
+          <div class="alert border-0 rounded-3" style="background:#e3f2fd;">
+            <i class="bi bi-person-circle me-2 text-primary"></i>
+            <a href="{% url 'login' %}" class="fw-semibold text-primary">Login</a> or
+            <a href="{% url 'register' %}" class="fw-semibold text-primary">Register</a> to purchase this product.
+          </div>
+          {% endif %}
+        {% else %}
+        <div class="alert alert-danger border-0 rounded-3">
+          <i class="bi bi-x-circle me-2"></i>This product is currently out of stock.
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Reviews Section ── -->
+  <div class="mt-5" id="reviews-section">
+    <h4 class="fw-bold mb-4"><i class="bi bi-chat-square-text me-2 text-primary"></i>Customer Reviews</h4>
+
+    <div class="row g-4">
+
+      <!-- Rating Summary -->
+      <div class="col-lg-3">
+        <div class="bg-white rounded-4 p-4 text-center shadow-sm h-100">
+          <div class="avg-score">{{ avg_rating }}</div>
+          <div class="my-2">
+            {% for i in range5 %}
+              <i class="bi bi-star{% if i <= avg_rating %}-fill{% endif %} star-sm {% if i > avg_rating %}empty{% endif %}"></i>
+            {% endfor %}
+          </div>
+          <div class="text-muted mb-4" style="font-size:13px;">{{ review_count }} review{{ review_count|pluralize }}</div>
+
+          <!-- Rating Breakdown Bars -->
+          {% for star in range5 reversed %}
+          {% with star_reviews=reviews %}
+          <div class="rating-bar-row">
+            <span class="rating-bar-label">{{ star }}</span>
+            <div class="rating-bar-track">
+              <div class="rating-bar-fill" style="width:{% if review_count > 0 %}{% widthratio reviews|length review_count 100 %}{% else %}0{% endif %}%"></div>
+            </div>
+            <span class="rating-bar-count">0</span>
+          </div>
+          {% endwith %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Write Review + Review List -->
+      <div class="col-lg-9">
+
+        <!-- Write Review Form -->
+        {% if user.is_authenticated %}
+        <div class="bg-white rounded-4 p-4 shadow-sm mb-4">
+          <h6 class="fw-bold mb-3">
+            {% if already_reviewed %}Edit Your Review{% else %}Write a Review{% endif %}
+          </h6>
+          <form method="post" action="{% url 'submit_review' product.pk %}">
+            {% csrf_token %}
+
+            <!-- Star picker -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Your Rating <span class="text-danger">*</span></label>
+              <div class="d-flex gap-1" id="starPicker">
+                {% for i in range5 %}
+                  <i class="bi bi-star star" data-val="{{ i }}"
+                     style="font-size:28px;"
+                     {% if user_review and i <= user_review.rating %}style="color:#f59e0b;"{% endif %}></i>
+                {% endfor %}
+              </div>
+              <input type="hidden" name="rating" id="ratingInput" value="{{ user_review.rating|default:'5' }}">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Review Title</label>
+              <input type="text" name="title" class="form-control" placeholder="Summarize your experience"
+                     value="{{ user_review.title|default:'' }}" maxlength="120">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Review <span class="text-danger">*</span></label>
+              <textarea name="body" class="form-control" rows="4"
+                        placeholder="Share details about your experience with this product...">{{ user_review.body|default:'' }}</textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-send me-2"></i>{% if already_reviewed %}Update Review{% else %}Submit Review{% endif %}
+              </button>
+              {% if already_reviewed %}
+                <a href="{% url 'delete_review' user_review.pk %}"
+                   class="btn btn-outline-danger px-4"
+                   onclick="return confirm('Delete your review?')">
+                  <i class="bi bi-trash me-1"></i>Delete
+                </a>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+        {% else %}
+        <div class="alert border-0 rounded-3 mb-4" style="background:#e3f2fd;">
+          <i class="bi bi-chat-square me-2 text-primary"></i>
+          <a href="{% url 'login' %}" class="fw-semibold text-primary">Login</a> to write a review.
+        </div>
+        {% endif %}
+
+        <!-- Review List -->
+        {% for review in reviews %}
+        <div class="review-card {% if user.is_authenticated and review.user == user %}mine{% endif %}">
+          <div class="d-flex align-items-start gap-3">
+            <div class="reviewer-avatar">{{ review.user.username|first|upper }}</div>
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                <span class="fw-bold">{{ review.user.username }}</span>
+                {% if user.is_authenticated and review.user == user %}
+                  <span class="badge" style="background:#dbeafe;color:#1e40af;font-size:10px;">Your Review</span>
+                {% endif %}
+                <div>
+                  {% for i in range5 %}
+                    <i class="bi bi-star{% if i <= review.rating %}-fill{% endif %} star-sm {% if i > review.rating %}empty{% endif %}"></i>
+                  {% endfor %}
+                </div>
+                <span class="text-muted" style="font-size:12px;">{{ review.created_at|date:"d M Y" }}</span>
+              </div>
+              {% if review.title %}
+                <div class="fw-semibold mb-1">{{ review.title }}</div>
+              {% endif %}
+              <p class="text-muted mb-0" style="line-height:1.6;">{{ review.body }}</p>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+          <i class="bi bi-chat-square-dots" style="font-size:3rem;color:#dee2e6;"></i>
+          <h6 class="text-muted mt-3">No reviews yet</h6>
+          <p class="text-muted small">Be the first to review this product!</p>
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Related Products ── -->
+  {% if related %}
+  <div class="mt-5">
+    <h4 class="fw-bold mb-4"><i class="bi bi-grid me-2 text-primary"></i>Related Products</h4>
+    <div class="row g-3">
+      {% for p in related %}
+      <div class="col-6 col-md-3">
+        <a href="{% url 'product_detail' p.pk %}" class="related-card">
+          {% if p.image %}
+            <img src="{{ p.image.url }}" class="related-img" alt="{{ p.name }}">
+          {% else %}
+            <div class="related-placeholder">
+              <i class="bi bi-box-seam" style="font-size:2.5rem;color:#adb5bd;"></i>
+            </div>
+          {% endif %}
+          <div class="p-3">
+            <div class="fw-semibold mb-1" style="font-size:13px;">{{ p.name|truncatechars:30 }}</div>
+            <div class="text-primary fw-bold">₹{{ p.selling_price }}</div>
+            <div class="text-muted" style="font-size:11px;">{{ p.stock_qty }} in stock</div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Footer -->
+<footer style="background:#1a1f2e;color:#adb5bd;" class="mt-5 py-4">
+  <div class="container text-center small">
+    <strong class="text-white"><i class="bi bi-shop me-1"></i>JAVSTAY</strong>
+    &nbsp;·&nbsp; <a href="{% url 'shop' %}" class="text-muted">Back to Shop</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // ── Quantity Picker ──
+  function changeQty(delta) {
+    const input = document.getElementById('qtyInput');
+    const max   = parseInt(input.max);
+    let val = parseInt(input.value) + delta;
+    if (val < 1) val = 1;
+    if (val > max) val = max;
+    input.value = val;
+  }
+
+  // ── Star Rating Picker ──
+  const stars      = document.querySelectorAll('#starPicker .star');
+  const ratingInput = document.getElementById('ratingInput');
+
+  function setStars(val) {
+    stars.forEach((s, i) => {
+      s.className = 'bi star';
+      s.className += i < val ? ' bi-star-fill' : ' bi-star';
+      s.style.color = i < val ? '#f59e0b' : '#d1d5db';
+    });
+  }
+
+  // Initialize with saved rating
+  if (ratingInput) {
+    setStars(parseInt(ratingInput.value) || 5);
+    stars.forEach((star, idx) => {
+      star.addEventListener('mouseover', () => setStars(idx + 1));
+      star.addEventListener('mouseleave', () => setStars(parseInt(ratingInput.value) || 5));
+      star.addEventListener('click', () => {
+        ratingInput.value = idx + 1;
+        setStars(idx + 1);
+      });
+    });
+  }
+
+  // ── Rating bars: compute per-star counts ──
+  // We pass a JSON of ratings from template
+  const ratingsData = [{% for r in reviews %}{{ r.rating }},{% endfor %}];
+  const total = ratingsData.length;
+  const counts = [0,0,0,0,0];
+  ratingsData.forEach(r => { if (r >= 1 && r <= 5) counts[r-1]++; });
+
+  document.querySelectorAll('.rating-bar-row').forEach((row, i) => {
+    const star = 5 - i; // reversed (5 to 1)
+    const count = counts[star - 1];
+    const pct = total > 0 ? (count / total * 100).toFixed(0) : 0;
+    row.querySelector('.rating-bar-fill').style.width = pct + '%';
+    row.querySelector('.rating-bar-count').textContent = count;
+  });
+</script>
+</body>
+</html>

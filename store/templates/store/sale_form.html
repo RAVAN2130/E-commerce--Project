@@ -1,0 +1,47 @@
+{% extends 'store/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container mt-4">
+  <h2>New Sale</h2>
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="card mb-3">
+      <div class="card-header"><strong>Invoice Details</strong></div>
+      <div class="card-body">
+        {{ form|crispy }}
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><strong>Items</strong></div>
+      <div class="card-body">
+        {{ formset.management_form }}
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Delete?</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in formset %}
+            <tr>
+              <td>{{ f.product }}</td>
+              <td>{{ f.quantity }}</td>
+              <td>{{ f.unit_price }}</td>
+              <td>{{ f.DELETE }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-success">Save Sale</button>
+    <a href="{% url 'sale_list' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

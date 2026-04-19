@@ -1,0 +1,29 @@
+{% extends 'store/base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Invoice: {{ sale.invoice_no }}</h2>
+  <p><strong>Customer:</strong> {{ sale.customer }}</p>
+  <p><strong>Date:</strong> {{ sale.sale_date }}</p>
+  <p><strong>Status:</strong> {{ sale.status }}</p>
+  <p><strong>Payment:</strong> {{ sale.payment_method }}</p>
+  <table class="table table-bordered mt-3">
+    <thead>
+      <tr><th>Product</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
+    </thead>
+    <tbody>
+      {% for item in sale.items.all %}
+      <tr>
+        <td>{{ item.product }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>{{ item.unit_price }}</td>
+        <td>{{ item.line_total }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p><strong>Subtotal:</strong> {{ sale.subtotal }}</p>
+  <p><strong>Discount:</strong> {{ sale.discount }}%</p>
+  <p><strong>Grand Total:</strong> {{ sale.grand_total }}</p>
+  <a href="{% url 'sale_list' %}" class="btn btn-secondary">Back</a>
+</div>
+{% endblock %}

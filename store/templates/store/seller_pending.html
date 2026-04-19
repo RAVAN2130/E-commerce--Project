@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JAVSTAY – Application Pending</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background: linear-gradient(135deg, #1a1f2e, #2d3561); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { border: none; border-radius: 20px; max-width: 500px; width: 100%; }
+    .timeline-item { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+    .timeline-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+    .dot-done { background: #d1fae5; color: #065f46; }
+    .dot-active { background: #fef3c7; color: #92400e; }
+    .dot-wait { background: #e9ecef; color: #adb5bd; }
+  </style>
+</head>
+<body>
+  <div class="card p-5 shadow-lg text-center mx-3">
+    <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#fef3c7,#fde68a);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;">
+      <i class="bi bi-hourglass-split" style="font-size:2.5rem;color:#f59e0b;"></i>
+    </div>
+    <h4 class="fw-bold mb-2">Application Under Review</h4>
+    <p class="text-muted mb-4">Your seller application for <strong>{{ profile.business_name }}</strong> has been submitted and is currently being reviewed by our team.</p>
+
+    <!-- Progress Timeline -->
+    <div class="text-start mb-4 px-2">
+      <div class="timeline-item">
+        <div class="timeline-dot dot-done"><i class="bi bi-check-lg"></i></div>
+        <div>
+          <div class="fw-semibold" style="font-size:14px;">Application Submitted</div>
+          <div class="text-muted small">{{ profile.applied_at|date:"d M Y, H:i" }}</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot dot-active"><i class="bi bi-search"></i></div>
+        <div>
+          <div class="fw-semibold" style="font-size:14px;">Under Review</div>
+          <div class="text-muted small">Our team is reviewing your details</div>
+        </div>
+      </div>
+      <div class="timeline-item" style="margin-bottom:0">
+        <div class="timeline-dot dot-wait"><i class="bi bi-shop"></i></div>
+        <div>
+          <div class="fw-semibold text-muted" style="font-size:14px;">Start Selling</div>
+          <div class="text-muted small">Awaiting approval</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-warning border-0 rounded-3 text-start small" style="background:#fef3c7;">
+      <i class="bi bi-info-circle me-2"></i>
+      We typically review applications within <strong>1–2 business days</strong>. Once approved, you'll see a notification on your buyer dashboard.
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+      <a href="{% url 'buyer_dashboard' %}" class="btn btn-primary flex-grow-1">
+        <i class="bi bi-person me-2"></i>My Account
+      </a>
+      <a href="{% url 'shop' %}" class="btn btn-outline-secondary flex-grow-1">
+        <i class="bi bi-grid me-2"></i>Browse Shop
+      </a>
+    </div>
+  </div>
+</body>
+</html>

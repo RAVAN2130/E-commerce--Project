@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JAVSTAY – My Products</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+    .sidebar { width: 220px; min-height: 100vh; background: #1a1f2e; position: sticky; top: 0; height: 100vh; overflow-y: auto; flex-shrink: 0; }
+    .sidebar .nav-link { color: #adb5bd; padding: 10px 16px; border-radius: 8px; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active { color: #fff; background: rgba(13,110,253,.25); }
+    .sidebar .brand { color: #fff; font-size: 1.1rem; font-weight: 700; padding: 16px; display: block; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 8px; }
+    .sidebar .section-lbl { color: #6c757d; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; padding: 10px 16px 4px; }
+    .main { flex: 1; padding: 28px; }
+    .product-card { background: white; border-radius: 14px; border: none; box-shadow: 0 2px 10px rgba(0,0,0,.06); transition: transform .2s, box-shadow .2s; overflow: hidden; }
+    .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+    .product-img { width: 100%; height: 160px; object-fit: cover; }
+    .product-img-placeholder { width: 100%; height: 160px; background: linear-gradient(135deg, #e9ecef, #dee2e6); display: flex; align-items: center; justify-content: center; }
+    .badge-active { background: #d1fae5; color: #065f46; }
+    .badge-inactive { background: #f3f4f6; color: #6b7280; }
+    .badge-low { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+<div class="d-flex">
+  <nav class="sidebar d-flex flex-column gap-1 p-2">
+    <a href="{% url 'seller_dashboard' %}" class="brand"><i class="bi bi-shop me-2"></i>{{ profile.business_name|truncatechars:18 }}</a>
+    <div class="section-lbl">Main</div>
+    <a href="{% url 'seller_dashboard' %}" class="nav-link"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a href="{% url 'seller_products' %}" class="nav-link active"><i class="bi bi-bag"></i>My Products</a>
+    <a href="{% url 'seller_orders' %}" class="nav-link"><i class="bi bi-box-seam"></i>Orders</a>
+    <div class="section-lbl">Store</div>
+    <a href="{% url 'seller_product_add' %}" class="nav-link"><i class="bi bi-plus-circle"></i>Add Product</a>
+    <a href="{% url 'shop' %}" class="nav-link"><i class="bi bi-storefront"></i>View Shop</a>
+    <div class="mt-auto pt-3 border-top border-secondary">
+      <form method="post" action="{% url 'logout' %}" style="margin:0">{% csrf_token %}
+        <button type="submit" class="nav-link text-danger w-100 text-start border-0 bg-transparent"><i class="bi bi-box-arrow-right"></i>Logout</button>
+      </form>
+    </div>
+  </nav>
+
+  <main class="main">
+    {% if messages %}{% for msg in messages %}
+      <div class="alert alert-success alert-dismissible fade show py-2">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}{% endif %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="fw-bold mb-0">My Products</h4>
+        <p class="text-muted small mb-0">Manage your product listings</p>
+      </div>
+      <a href="{% url 'seller_product_add' %}" class="btn btn-primary px-4">
+        <i class="bi bi-plus-lg me-2"></i>Add New Product
+      </a>
+    </div>
+
+    <!-- Stats row -->
+    <div class="row g-3 mb-4">
+      <div class="col-4">
+        <div class="bg-white rounded-3 p-3 text-center shadow-sm">
+          <div class="fs-3 fw-bold text-primary">{{ products|length }}</div>
+          <div class="text-muted small">Total</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="bg-white rounded-3 p-3 text-center shadow-sm">
+          <div class="fs-3 fw-bold text-success">{% with c=0 %}{% for p in products %}{% if p.is_active %}{% with c=c %}{% endwith %}{% endif %}{% endfor %}{{ products|length }}{% endwith %}</div>
+          <div class="text-muted small">Active</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="bg-white rounded-3 p-3 text-center shadow-sm">
+          <div class="fs-3 fw-bold text-danger">{% with c=0 %}{% for p in products %}{% if p.is_low_stock %}{% with c=c %}{% endwith %}{% endif %}{% endfor %}0{% endwith %}</div>
+          <div class="text-muted small">Low Stock</div>
+        </div>
+      </div>
+    </div>
+
+    {% if products %}
+    <div class="row g-3">
+      {% for p in products %}
+      <div class="col-md-4 col-sm-6">
+        <div class="product-card">
+          {% if p.image %}
+            <img src="{{ p.image.url }}" class="product-img" alt="{{ p.name }}">
+          {% else %}
+            <div class="product-img-placeholder">
+              <i class="bi bi-box-seam" style="font-size:3rem;color:#adb5bd;"></i>
+            </div>
+          {% endif %}
+          <div class="p-3">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <h6 class="fw-bold mb-0" style="font-size:14px;">{{ p.name }}</h6>
+              {% if p.is_active %}<span class="badge badge-active" style="font-size:10px;">Active</span>
+              {% else %}<span class="badge badge-inactive" style="font-size:10px;">Inactive</span>{% endif %}
+            </div>
+            <p class="text-muted" style="font-size:12px;margin-bottom:8px;">{{ p.description|truncatechars:55 }}</p>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="fw-bold text-primary fs-5">₹{{ p.selling_price }}</span>
+              <div>
+                {% if p.is_low_stock %}
+                  <span class="badge badge-low" style="font-size:10px;"><i class="bi bi-exclamation-triangle me-1"></i>{{ p.stock_qty }} left</span>
+                {% else %}
+                  <span class="badge" style="background:#d1fae5;color:#065f46;font-size:10px;">Stock: {{ p.stock_qty }}</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="d-flex gap-2 mt-2">
+              <a href="{% url 'seller_product_edit' p.pk %}" class="btn btn-outline-primary btn-sm flex-grow-1">
+                <i class="bi bi-pencil me-1"></i>Edit
+              </a>
+              <a href="{% url 'seller_product_delete' p.pk %}" class="btn btn-outline-danger btn-sm flex-grow-1">
+                <i class="bi bi-trash me-1"></i>Delete
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 bg-white rounded-3 shadow-sm">
+      <i class="bi bi-bag-x" style="font-size:4rem;color:#dee2e6;"></i>
+      <h5 class="text-muted mt-3">No products yet</h5>
+      <p class="text-muted small">Start adding products to your store to begin selling.</p>
+      <a href="{% url 'seller_product_add' %}" class="btn btn-primary px-5 mt-2">
+        <i class="bi bi-plus-lg me-2"></i>Add Your First Product
+      </a>
+    </div>
+    {% endif %}
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

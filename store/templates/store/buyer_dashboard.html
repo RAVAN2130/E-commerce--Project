@@ -1,0 +1,245 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JAVSTAY – My Account</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { margin:0; background:#f0f2f5; font-family:'Segoe UI',sans-serif; }
+    .navbar { background:linear-gradient(135deg,#1a1f2e 0%,#2d3561 100%) !important; box-shadow:0 2px 12px rgba(0,0,0,.2); }
+    .hero { background:linear-gradient(135deg,#1a1f2e 0%,#2d3561 40%,#0d6efd 100%); color:white; padding:56px 0 48px; position:relative; overflow:hidden; }
+    .hero::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 20% 50%,rgba(255,255,255,.05) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(13,110,253,.3) 0%,transparent 40%); }
+    .hero-bg-icon { position:absolute; right:-20px; bottom:-30px; font-size:10rem; opacity:.06; color:white; }
+    .hero-content { position:relative; z-index:1; }
+    .stat-card { border:none; border-radius:16px; transition:transform .2s,box-shadow .2s; overflow:hidden; }
+    .stat-card:hover { transform:translateY(-4px); box-shadow:0 12px 28px rgba(0,0,0,.12); }
+    .stat-icon { width:52px; height:52px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; }
+    .section-card { border:none; border-radius:16px; background:white; box-shadow:0 2px 12px rgba(0,0,0,.06); }
+    .quick-action { border:2px solid #e9ecef; border-radius:14px; padding:20px; text-decoration:none; color:#1a1f2e; transition:all .2s; display:block; text-align:center; background:white; }
+    .quick-action:hover { border-color:#0d6efd; color:#0d6efd; background:#f0f5ff; transform:translateY(-2px); }
+    .quick-action i { font-size:2rem; display:block; margin-bottom:8px; }
+    .seller-cta { background:linear-gradient(135deg,#f59e0b 0%,#ef4444 100%); border-radius:16px; color:white; padding:28px 24px; }
+    .orders-table th { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:#6c757d; }
+    .orders-table td { vertical-align:middle; }
+    .b-pending   { background:#fef3c7; color:#92400e; font-size:11px; }
+    .b-confirmed { background:#dbeafe; color:#1e40af; font-size:11px; }
+    .b-shipped   { background:#cffafe; color:#0e7490; font-size:11px; }
+    .b-delivered { background:#d1fae5; color:#065f46; font-size:11px; }
+    .b-cancelled { background:#fee2e2; color:#991b1b; font-size:11px; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark px-4 py-3 d-flex justify-content-between align-items-center">
+  <a class="navbar-brand fw-bold fs-5" href="{% url 'shop' %}"><i class="bi bi-shop me-2"></i>JAVSTAY</a>
+  <div class="d-flex gap-2 align-items-center">
+    <span class="text-white-50 small d-none d-md-block">Hi, {{ username }}</span>
+    <a href="{% url 'shop' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-grid me-1"></i>Shop</a>
+    <a href="{% url 'cart' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-cart3"></i></a>
+    <a href="{% url 'order_list' %}" class="btn btn-outline-light btn-sm">My Orders</a>
+    <form method="post" action="{% url 'logout' %}" style="margin:0">{% csrf_token %}
+      <button type="submit" class="btn btn-outline-danger btn-sm">Logout</button>
+    </form>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <i class="bi bi-bag-heart-fill hero-bg-icon"></i>
+  <div class="container hero-content">
+    <div class="row align-items-center">
+      <div class="col-md-9">
+        <h2 class="fw-bold mb-2" style="font-size:2rem">Welcome back, {{ username }}! 🎉</h2>
+        <p class="mb-3" style="opacity:.85">Track your orders, manage your account, and explore thousands of products.</p>
+        <a href="{% url 'shop' %}" class="btn btn-light fw-semibold px-4 me-2"><i class="bi bi-grid me-2"></i>Browse Products</a>
+        <a href="{% url 'order_list' %}" class="btn btn-outline-light px-4"><i class="bi bi-box me-2"></i>My Orders</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if messages %}
+<div class="container mt-3">
+  {% for msg in messages %}
+    <div class="alert alert-success alert-dismissible fade show py-2">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="container py-4">
+
+
+  <!-- Seller Approved Banner -->
+  {% for g in user.groups.all %}{% if g.name == 'Seller' %}
+  <div class="alert border-0 rounded-3 shadow-sm mb-4 d-flex align-items-center gap-3" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0)">
+    <i class="bi bi-shop-window fs-2 text-success"></i>
+    <div class="flex-grow-1">
+      <strong class="text-success">🎉 Your seller application has been approved!</strong><br>
+      <span class="small text-success">You can now manage your store, add products, and track orders from your Seller Dashboard.</span>
+    </div>
+    <a href="{% url 'seller_dashboard' %}" class="btn btn-success fw-semibold px-4 flex-shrink-0">
+      Seller Dashboard <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+  </div>
+  {% endif %}{% endfor %}
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-4">
+      <div class="stat-card p-3 h-100" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb)">
+        <div class="d-flex align-items-center gap-3">
+          <div class="stat-icon" style="background:rgba(13,110,253,.15);color:#0d6efd"><i class="bi bi-bag-check"></i></div>
+          <div><div class="fs-3 fw-bold text-primary">{{ total_orders }}</div><div class="text-muted small">Total Orders</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4">
+      <div class="stat-card p-3 h-100" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9)">
+        <div class="d-flex align-items-center gap-3">
+          <div class="stat-icon" style="background:rgba(25,135,84,.15);color:#198754"><i class="bi bi-house-check"></i></div>
+          <div><div class="fs-3 fw-bold text-success">{{ delivered }}</div><div class="text-muted small">Delivered</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4">
+      <div class="stat-card p-3 h-100" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2)">
+        <div class="d-flex align-items-center gap-3">
+          <div class="stat-icon" style="background:rgba(253,126,20,.15);color:#fd7e14"><i class="bi bi-hourglass-split"></i></div>
+          <div><div class="fs-3 fw-bold text-warning">{{ pending }}</div><div class="text-muted small">In Progress</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+
+      <!-- Recent Orders -->
+      <div class="section-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Orders</h6>
+          <a href="{% url 'order_list' %}" class="btn btn-outline-primary btn-sm">View All</a>
+        </div>
+        {% if orders %}
+        <div class="table-responsive">
+          <table class="table table-hover orders-table mb-0">
+            <thead><tr><th>Invoice</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {% for order in orders %}
+              <tr>
+                <td>
+                  <span class="fw-semibold">{{ order.invoice_no }}</span>
+                  <div class="text-muted" style="font-size:10px">{{ order.tracking_id }}</div>
+                </td>
+                <td class="text-muted small">{{ order.created_at|date:"d M Y" }}</td>
+                <td class="fw-semibold text-primary">₹{{ order.grand_total }}</td>
+                <td>
+                  {% if order.status == 'delivered' %}<span class="badge b-delivered rounded-pill px-2">✓ Delivered</span>
+                  {% elif order.status == 'shipped' %}<span class="badge b-shipped rounded-pill px-2">🚚 Shipped</span>
+                  {% elif order.status == 'confirmed' %}<span class="badge b-confirmed rounded-pill px-2">✓ Confirmed</span>
+                  {% elif order.status == 'cancelled' %}<span class="badge b-cancelled rounded-pill px-2">✗ Cancelled</span>
+                  {% else %}<span class="badge b-pending rounded-pill px-2">⏳ Pending</span>{% endif %}
+                </td>
+                <td><a href="{% url 'order_detail' order.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">View</a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-bag-x" style="font-size:3rem;color:#dee2e6"></i>
+          <p class="text-muted mt-2 mb-3">No orders yet. Start shopping!</p>
+          <a href="{% url 'shop' %}" class="btn btn-primary px-4"><i class="bi bi-grid me-2"></i>Browse Products</a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="section-card p-4">
+        <h6 class="fw-bold mb-3"><i class="bi bi-lightning me-2 text-warning"></i>Quick Actions</h6>
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <a href="{% url 'shop' %}" class="quick-action">
+              <i class="bi bi-grid-3x3-gap text-primary"></i><span class="small fw-semibold">Shop Now</span>
+            </a>
+          </div>
+          <div class="col-6 col-md-3">
+            <a href="{% url 'cart' %}" class="quick-action">
+              <i class="bi bi-cart3 text-success"></i><span class="small fw-semibold">My Cart</span>
+            </a>
+          </div>
+          <div class="col-6 col-md-3">
+            <a href="{% url 'order_list' %}" class="quick-action">
+              <i class="bi bi-box-seam text-info"></i><span class="small fw-semibold">All Orders</span>
+            </a>
+          </div>
+          <div class="col-6 col-md-3">
+            <a href="{% url 'seller_apply' %}" class="quick-action">
+              <i class="bi bi-shop text-warning"></i><span class="small fw-semibold">Sell Here</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+      <!-- Sell with Us CTA -->
+      <div class="seller-cta mb-4">
+        <div class="d-flex gap-3">
+          <i class="bi bi-shop-window fs-1" style="opacity:.75"></i>
+          <div>
+            <h5 class="fw-bold mb-1">Start Selling Today!</h5>
+            <p class="small mb-3" style="opacity:.9">Turn your products into profit. Join thousands of sellers on JAVSTAY.</p>
+            <a href="{% url 'seller_apply' %}" class="btn btn-light btn-sm fw-semibold px-3">
+              <i class="bi bi-arrow-right-circle me-1"></i>Apply as Seller
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account Summary -->
+      <div class="section-card p-4">
+        <h6 class="fw-bold mb-3"><i class="bi bi-person-circle me-2 text-primary"></i>My Account</h6>
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#0d6efd,#6610f2);display:flex;align-items:center;justify-content:center;color:white;font-size:1.3rem;font-weight:700;">
+            {{ username|first|upper }}
+          </div>
+          <div>
+            <div class="fw-semibold">{{ username }}</div>
+            <span class="badge bg-primary" style="font-size:10px">Buyer</span>
+          </div>
+        </div>
+        <hr class="my-2">
+        <div class="d-flex justify-content-between small text-muted py-1">
+          <span>Total Orders</span><span class="fw-semibold text-dark">{{ total_orders }}</span>
+        </div>
+        <div class="d-flex justify-content-between small text-muted py-1">
+          <span>Delivered</span><span class="fw-semibold text-success">{{ delivered }}</span>
+        </div>
+        <div class="d-flex justify-content-between small text-muted py-1">
+          <span>In Progress</span><span class="fw-semibold text-warning">{{ pending }}</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer style="background:#1a1f2e;color:#adb5bd" class="mt-5 py-4">
+  <div class="container text-center small">
+    <strong class="text-white"><i class="bi bi-shop me-1"></i>JAVSTAY</strong> &nbsp;·&nbsp;
+    Your trusted online marketplace &nbsp;·&nbsp;
+    <a href="{% url 'shop' %}" class="text-muted">Shop</a> &nbsp;·&nbsp;
+    <a href="{% url 'seller_apply' %}" class="text-muted">Sell with Us</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

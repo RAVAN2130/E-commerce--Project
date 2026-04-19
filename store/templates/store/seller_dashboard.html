@@ -1,0 +1,320 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JAVSTAY – Seller Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; }
+    .top-nav { background: linear-gradient(135deg, #1a1f2e, #2d3561); box-shadow: 0 2px 12px rgba(0,0,0,.25); }
+    .sidebar { width: 220px; min-height: 100vh; background: #1a1f2e; position: sticky; top: 0; height: 100vh; overflow-y: auto; flex-shrink: 0; }
+    .sidebar .nav-link { color: #adb5bd; padding: 10px 16px; border-radius: 8px; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active { color: #fff; background: rgba(13,110,253,.25); }
+    .sidebar .brand { color: #fff; font-size: 1.1rem; font-weight: 700; padding: 16px; display: block; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 8px; }
+    .sidebar .section-lbl { color: #6c757d; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; padding: 10px 16px 4px; }
+    .main { flex: 1; padding: 28px; min-height: 100vh; overflow-x: hidden; }
+    .stat-card { border: none; border-radius: 16px; overflow: hidden; transition: transform .2s, box-shadow .2s; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,.1); }
+    .chart-card { background: white; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,.06); padding: 24px; }
+    .badge-pending   { background:#fef3c7;color:#92400e; }
+    .badge-confirmed { background:#dbeafe;color:#1e40af; }
+    .badge-shipped   { background:#cffafe;color:#0e7490; }
+    .badge-delivered { background:#d1fae5;color:#065f46; }
+    .badge-cancelled { background:#fee2e2;color:#991b1b; }
+    .hero-banner { background: linear-gradient(135deg, #0d6efd, #6610f2); color: white; border-radius: 16px; padding: 28px; margin-bottom: 24px; position: relative; overflow: hidden; }
+    .hero-banner::after { content: '\f54e'; font-family: 'bootstrap-icons'; position: absolute; right: 20px; top: 10px; font-size: 6rem; opacity: .1; }
+    .insight-pill { background: rgba(255,255,255,.15); border-radius: 30px; padding: 4px 14px; font-size: 12px; display: inline-block; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div class="d-flex">
+
+  <!-- Sidebar -->
+  <nav class="sidebar d-flex flex-column gap-1 p-2">
+    <a href="{% url 'seller_dashboard' %}" class="brand">
+      <i class="bi bi-shop me-2"></i>{{ profile.business_name|truncatechars:18 }}
+    </a>
+    <div class="section-lbl">Main</div>
+    <a href="{% url 'seller_dashboard' %}" class="nav-link active"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    <a href="{% url 'seller_products' %}" class="nav-link"><i class="bi bi-bag"></i>My Products</a>
+    <a href="{% url 'seller_orders' %}" class="nav-link"><i class="bi bi-box-seam"></i>Orders</a>
+    <div class="section-lbl">Store</div>
+    <a href="{% url 'seller_product_add' %}" class="nav-link"><i class="bi bi-plus-circle"></i>Add Product</a>
+    <a href="{% url 'shop' %}" class="nav-link"><i class="bi bi-storefront"></i>View Shop</a>
+    <div class="mt-auto pt-3 border-top border-secondary">
+      <div class="d-flex align-items-center gap-2 px-2 pb-2">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#0d6efd,#6610f2);display:flex;align-items:center;justify-content:center;color:white;font-size:.9rem;font-weight:700;">
+          {{ profile.owner_name|first|upper }}
+        </div>
+        <div style="font-size:12px;color:#adb5bd;">{{ profile.owner_name|truncatechars:15 }}</div>
+      </div>
+      <form method="post" action="{% url 'logout' %}" style="margin:0">
+        {% csrf_token %}
+        <button type="submit" class="nav-link text-danger w-100 text-start border-0 bg-transparent">
+          <i class="bi bi-box-arrow-right"></i>Logout
+        </button>
+      </form>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main">
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show py-2">
+          {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+      <h4 class="fw-bold mb-1">Welcome back, {{ profile.owner_name }}! 👋</h4>
+      <p class="mb-2" style="opacity:.85">Here's how your store is performing today.</p>
+      <span class="insight-pill"><i class="bi bi-shield-check me-1"></i>Approved Seller</span>
+      <span class="insight-pill ms-2"><i class="bi bi-building me-1"></i>{{ profile.business_type }}</span>
+    </div>
+
+    <!-- KPI Stats -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-xl-3">
+        <div class="stat-card p-3" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9)">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(25,135,84,.15);color:#198754;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">
+              <i class="bi bi-currency-rupee"></i>
+            </div>
+            <div>
+              <div class="fs-4 fw-bold text-success">₹{{ total_revenue|floatformat:0 }}</div>
+              <div class="text-muted small">Total Revenue</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="stat-card p-3" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb)">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(13,110,253,.15);color:#0d6efd;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">
+              <i class="bi bi-bag-check"></i>
+            </div>
+            <div>
+              <div class="fs-4 fw-bold text-primary">{{ total_orders }}</div>
+              <div class="text-muted small">Total Orders</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="stat-card p-3" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2)">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(253,126,20,.15);color:#fd7e14;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">
+              <i class="bi bi-box-seam"></i>
+            </div>
+            <div>
+              <div class="fs-4 fw-bold text-warning">{{ total_products }}</div>
+              <div class="text-muted small">Active Products</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="stat-card p-3" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0)">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(220,53,69,.15);color:#dc3545;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">
+              <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div>
+              <div class="fs-4 fw-bold text-danger">{{ low_stock }}</div>
+              <div class="text-muted small">Low Stock</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+      <!-- Monthly Revenue Bar Chart -->
+      <div class="col-lg-8">
+        <div class="chart-card h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Monthly Revenue (Last 6 Months)</h6>
+          </div>
+          <canvas id="revenueChart" height="120"></canvas>
+        </div>
+      </div>
+      <!-- Order Status Donut -->
+      <div class="col-lg-4">
+        <div class="chart-card h-100">
+          <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart-fill me-2 text-warning"></i>Order Status</h6>
+          <canvas id="statusChart" height="180"></canvas>
+          <div class="mt-3 d-flex flex-wrap gap-2 justify-content-center" id="statusLegend"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row g-4 mb-4">
+      <!-- Revenue vs Orders trend -->
+      <div class="col-lg-7">
+        <div class="chart-card">
+          <h6 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow me-2 text-success"></i>Revenue Trend</h6>
+          <canvas id="trendChart" height="130"></canvas>
+        </div>
+      </div>
+      <!-- Top Products -->
+      <div class="col-lg-5">
+        <div class="chart-card h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0"><i class="bi bi-trophy me-2 text-warning"></i>Top Products</h6>
+          </div>
+          {% for p in products|slice:":5" %}
+          <div class="d-flex align-items-center gap-3 mb-3">
+            {% if p.image %}
+              <img src="{{ p.image.url }}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;" alt="">
+            {% else %}
+              <div style="width:40px;height:40px;border-radius:8px;background:#e9ecef;display:flex;align-items:center;justify-content:center;"><i class="bi bi-box text-muted"></i></div>
+            {% endif %}
+            <div class="flex-grow-1">
+              <div class="fw-semibold" style="font-size:13px;">{{ p.name|truncatechars:22 }}</div>
+              <div class="text-muted" style="font-size:11px;">Stock: {{ p.stock_qty }} &nbsp;|&nbsp; ₹{{ p.selling_price }}</div>
+              <div class="progress mt-1" style="height:4px;">
+                <div class="progress-bar bg-primary" style="width:{% if p.stock_qty > 50 %}80{% elif p.stock_qty > 20 %}50{% elif p.stock_qty > 5 %}25{% else %}10{% endif %}%"></div>
+              </div>
+            </div>
+            {% if p.is_active %}<span class="badge bg-success" style="font-size:9px;">Active</span>
+            {% else %}<span class="badge bg-secondary" style="font-size:9px;">Off</span>{% endif %}
+          </div>
+          {% empty %}
+          <div class="text-center py-3 text-muted">
+            <i class="bi bi-bag-x fs-3"></i><p class="mt-2 small">No products yet</p>
+            <a href="{% url 'seller_product_add' %}" class="btn btn-sm btn-primary">Add Product</a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="chart-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Orders</h6>
+        <a href="{% url 'seller_orders' %}" class="btn btn-outline-primary btn-sm">View All</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px;">
+          <thead class="table-light">
+            <tr><th>Invoice</th><th>Buyer</th><th>Product</th><th>Qty</th><th>Amount</th><th>Date</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for item in recent_orders %}
+            <tr>
+              <td><small class="text-muted">{{ item.order.invoice_no }}</small></td>
+              <td class="fw-semibold">{{ item.order.full_name }}</td>
+              <td>{{ item.product.name|truncatechars:20 }}</td>
+              <td>{{ item.quantity }}</td>
+              <td class="fw-bold text-success">₹{{ item.line_total }}</td>
+              <td class="text-muted">{{ item.order.created_at|date:"d M Y" }}</td>
+              <td>
+                {% if item.order.status == 'delivered' %}<span class="badge badge-delivered rounded-pill px-2">Delivered</span>
+                {% elif item.order.status == 'shipped' %}<span class="badge badge-shipped rounded-pill px-2">Shipped</span>
+                {% elif item.order.status == 'confirmed' %}<span class="badge badge-confirmed rounded-pill px-2">Confirmed</span>
+                {% elif item.order.status == 'cancelled' %}<span class="badge badge-cancelled rounded-pill px-2">Cancelled</span>
+                {% else %}<span class="badge badge-pending rounded-pill px-2">Pending</span>{% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>No orders yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  const months   = [{% for m in monthly_revenue %}"{{ m.month }}",{% endfor %}];
+  const revenues = [{% for m in monthly_revenue %}{{ m.revenue }},{% endfor %}];
+
+  // Bar Chart - Monthly Revenue
+  new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [{
+        label: 'Revenue (₹)',
+        data: revenues,
+        backgroundColor: ['#4361ee33','#4361ee55','#4361ee77','#4361ee99','#4361eebb','#4361eedd'],
+        borderColor: '#4361ee',
+        borderWidth: 2,
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ₹' + ctx.raw.toLocaleString('en-IN') } } },
+      scales: { y: { beginAtZero: true, ticks: { callback: v => '₹' + v.toLocaleString('en-IN') }, grid: { color: '#f0f0f0' } }, x: { grid: { display: false } } }
+    }
+  });
+
+  // Line Trend Chart
+  new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [{
+        label: 'Revenue ₹',
+        data: revenues,
+        borderColor: '#0d6efd',
+        backgroundColor: 'rgba(13,110,253,0.08)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#0d6efd',
+        pointRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ₹' + ctx.raw.toLocaleString('en-IN') } } },
+      scales: { y: { beginAtZero: true, ticks: { callback: v => '₹' + v.toLocaleString('en-IN') }, grid: { color: '#f0f0f0' } }, x: { grid: { display: false } } }
+    }
+  });
+
+  // Donut - Order Status
+  const pending   = {{ recent_orders|length }};
+  const delivered = {% with c=recent_orders %}{% for i in c %}{% if i.order.status == 'delivered' %}1+{% endif %}{% endfor %}0{% endwith %};
+  new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'],
+      datasets: [{
+        data: [
+          {{ recent_orders|length }},
+          {% with c=0 %}{{ c }}{% endwith %},
+          {% with c=0 %}{{ c }}{% endwith %},
+          {% with c=0 %}{{ c }}{% endwith %},
+          {% with c=0 %}{{ c }}{% endwith %}
+        ],
+        backgroundColor: ['#fef3c7','#dbeafe','#cffafe','#d1fae5','#fee2e2'],
+        borderColor:     ['#f59e0b','#3b82f6','#06b6d4','#10b981','#ef4444'],
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '65%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw } }
+      }
+    }
+  });
+</script>
+</body>
+</html>

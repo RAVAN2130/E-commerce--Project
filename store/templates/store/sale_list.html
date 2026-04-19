@@ -1,0 +1,40 @@
+{% extends 'store/base.html' %}
+{% block title %}Sales{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold">Sales</h4>
+  <a href="{% url 'sale_create' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus"></i> New Sale
+  </a>
+</div>
+
+<div class="card">
+  <table class="table table-hover mb-0">
+    <thead class="table-light">
+      <tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Payment</th><th>Total</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for s in sales %}
+      <tr>
+        <td><a href="{% url 'sale_detail' s.pk %}">{{ s.invoice_no }}</a></td>
+        <td>{{ s.customer.name|default:"—" }}</td>
+        <td>{{ s.sale_date|date:"d M Y, H:i" }}</td>
+        <td>{{ s.payment_method }}</td>
+        <td>₹{{ s.grand_total }}</td>
+        <td>
+          {% if s.status == 'completed' %}
+            <span class="badge bg-success">Completed</span>
+          {% elif s.status == 'pending' %}
+            <span class="badge bg-warning text-dark">Pending</span>
+          {% else %}
+            <span class="badge bg-danger">Refunded</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-center text-muted py-4">No sales yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

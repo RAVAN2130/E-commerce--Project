@@ -1,0 +1,68 @@
+{% extends 'store/base.html' %}
+{% block title %}Seller Management{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-4">Seller Management</h4>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="card p-3" style="background:#e8f5e9;border-radius:12px"><div class="fs-3 fw-bold text-success">{{ sellers|length }}</div><div class="text-muted">Total Applications</div></div></div>
+  <div class="col-md-3"><div class="card p-3" style="background:#fff3e0;border-radius:12px"><div class="fs-3 fw-bold text-warning">{{ sellers|length }}</div><div class="text-muted">Pending Review</div></div></div>
+</div>
+
+<div class="card">
+  <table class="table table-hover mb-0">
+    <thead class="table-light">
+      <tr><th>Business</th><th>Owner</th><th>GST</th><th>Type</th><th>Applied</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for seller in sellers %}
+      <tr>
+        <td>
+          <div class="fw-bold">{{ seller.business_name }}</div>
+          <div class="text-muted small">{{ seller.email }}</div>
+        </td>
+        <td>{{ seller.owner_name }}</td>
+        <td><code>{{ seller.gst_id }}</code></td>
+        <td>{{ seller.business_type }}</td>
+        <td>{{ seller.applied_at|date:"d M Y" }}</td>
+        <td>
+          {% if seller.status == 'approved' %}<span class="badge bg-success">Approved</span>
+          {% elif seller.status == 'rejected' %}<span class="badge bg-danger">Rejected</span>
+          {% elif seller.status == 'suspended' %}<span class="badge bg-warning text-dark">Suspended</span>
+          {% else %}<span class="badge bg-warning text-dark">Pending</span>{% endif %}
+        </td>
+        <td>
+          {% if seller.status == 'pending' %}
+          <a href="{% url 'admin_seller_approve' seller.pk %}" class="btn btn-sm btn-success">Approve</a>
+          <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ seller.pk }}">Reject</button>
+          <div class="modal fade" id="rejectModal{{ seller.pk }}" tabindex="-1">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header"><h6 class="modal-title">Reject {{ seller.business_name }}</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <form method="post" action="{% url 'admin_seller_reject' seller.pk %}">
+                  {% csrf_token %}
+                  <div class="modal-body">
+                    <label class="form-label">Reason for rejection</label>
+                    <textarea name="reason" class="form-control" rows="3"></textarea>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Confirm Reject</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% elif seller.status == 'approved' %}
+          <span class="text-muted small">{{ seller.total_products }} products</span>
+          {% else %}
+          <span class="text-muted small">{{ seller.rejection_reason|truncatechars:30 }}</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="text-center text-muted py-4">No seller applications yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

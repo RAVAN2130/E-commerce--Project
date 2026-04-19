@@ -1,0 +1,108 @@
+{% extends 'store/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h4 class="mb-4 fw-bold">Dashboard</h4>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card stat-card bg-primary text-white p-3">
+      <div class="fs-2 fw-bold">₹{{ today_revenue|floatformat:0 }}</div>
+      <div>Today's Revenue</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card bg-success text-white p-3">
+      <div class="fs-2 fw-bold">₹{{ monthly_revenue|floatformat:0 }}</div>
+      <div>Monthly Revenue</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card bg-info text-white p-3">
+      <div class="fs-2 fw-bold">{{ total_products }}</div>
+      <div>Total Products</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card bg-warning text-dark p-3">
+      <div class="fs-2 fw-bold">{{ low_stock }}</div>
+      <div>Low Stock Alerts</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-7">
+    <div class="card p-3">
+      <h6 class="fw-bold mb-3">Recent Sales</h6>
+      <table class="table table-sm table-hover">
+        <thead class="table-light">
+          <tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for s in recent_sales %}
+          <tr>
+            <td><a href="{% url 'sale_detail' s.pk %}">{{ s.invoice_no }}</a></td>
+            <td>{{ s.customer.name|default:"—" }}</td>
+            <td>₹{{ s.grand_total }}</td>
+            <td><span class="badge bg-success">{{ s.status }}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-muted text-center py-3">No sales yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <div class="card p-3">
+      <h6 class="fw-bold mb-3 text-danger"><i class="bi bi-exclamation-triangle"></i> Low Stock</h6>
+      <ul class="list-group list-group-flush">
+        {% for p in low_stock_products %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ p.name }}
+          <span class="badge bg-danger">{{ p.stock_qty }} left</span>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">All stock levels OK</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Online Orders -->
+<div class="row g-3 mt-1">
+  <div class="col-12">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0"><i class="bi bi-bag-check me-2 text-primary"></i>Recent Online Orders</h6>
+        <span class="badge bg-primary">Live</span>
+      </div>
+      <table class="table table-sm table-hover">
+        <thead class="table-light">
+          <tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for o in recent_orders %}
+          <tr>
+            <td><span class="fw-semibold">{{ o.invoice_no }}</span></td>
+            <td>{{ o.full_name }}</td>
+            <td class="text-muted small">{{ o.created_at|date:"d M Y, H:i" }}</td>
+            <td class="text-primary fw-semibold">₹{{ o.grand_total }}</td>
+            <td>
+              {% if o.status == 'delivered' %}<span class="badge bg-success">Delivered</span>
+              {% elif o.status == 'shipped' %}<span class="badge bg-info">Shipped</span>
+              {% elif o.status == 'confirmed' %}<span class="badge bg-primary">Confirmed</span>
+              {% elif o.status == 'cancelled' %}<span class="badge bg-danger">Cancelled</span>
+              {% else %}<span class="badge bg-warning text-dark">Pending</span>{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-muted text-center py-3">No online orders yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

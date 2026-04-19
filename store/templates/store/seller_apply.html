@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JAVSTAY – Become a Seller</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background: #f0f2f5; }
+    .navbar { background: #1a1f2e !important; }
+    .card { border: none; border-radius: 12px; }
+    .form-control, .form-select { border-radius: 8px; padding: 10px 14px; }
+    .section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; color: #6c757d; letter-spacing: 1px; margin: 20px 0 10px; }
+    .terms-box { background: #f8f9fa; border-radius: 8px; padding: 16px; font-size: 13px; max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-dark px-4 py-3 d-flex justify-content-between">
+    <a class="navbar-brand fw-bold" href="{% url 'shop' %}"><i class="bi bi-shop me-2"></i>JAVSTAY</a>
+    <a href="{% url 'shop' %}" class="btn btn-outline-light btn-sm">Back to Shop</a>
+  </nav>
+
+  <div class="container py-4" style="max-width:800px">
+    <div class="text-center mb-4">
+      <h3 class="fw-bold">Become a Seller</h3>
+      <p class="text-muted">Fill in your business details to start selling on JAVSTAY</p>
+    </div>
+
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-info">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="card p-4 mb-3">
+        <div class="section-title">Business Information</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Business Name *</label>
+            <input type="text" name="business_name" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Owner Name *</label>
+            <input type="text" name="owner_name" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Business Email *</label>
+            <input type="email" name="email" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Phone *</label>
+            <input type="text" name="phone" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Business Type *</label>
+            <input type="text" name="business_type" class="form-control" placeholder="e.g. Electronics, Clothing" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Profile Photo</label>
+            <input type="file" name="profile_photo" class="form-control" accept="image/*">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Business Description / Bio *</label>
+            <textarea name="bio" class="form-control" rows="3" required></textarea>
+          </div>
+        </div>
+
+        <div class="section-title">Legal & Tax Details</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">GST Number (15 digits) *</label>
+            <input type="text" name="gst_id" class="form-control" maxlength="15" placeholder="22AAAAA0000A1Z5" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">PAN Number (10 chars) *</label>
+            <input type="text" name="pan_number" class="form-control" maxlength="10" placeholder="AAAAA0000A" required>
+          </div>
+        </div>
+
+        <div class="section-title">Address</div>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Business Address *</label>
+            <textarea name="business_address" class="form-control" rows="2" required></textarea>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">City *</label>
+            <input type="text" name="city" class="form-control" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">State *</label>
+            <input type="text" name="state" class="form-control" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Pincode *</label>
+            <input type="text" name="pincode" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="section-title">Bank Details (for payments)</div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Bank Account Number *</label>
+            <input type="text" name="bank_account" class="form-control" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Bank Name *</label>
+            <input type="text" name="bank_name" class="form-control" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">IFSC Code *</label>
+            <input type="text" name="ifsc_code" class="form-control" maxlength="11" required>
+          </div>
+        </div>
+
+        <div class="section-title">Terms & Conditions</div>
+        <div class="terms-box mb-3">
+          <strong>Seller Terms & Conditions — JAVSTAY</strong><br><br>
+          1. You must provide accurate business and tax information.<br>
+          2. All listed products must be genuine and legally saleable.<br>
+          3. JAVSTAY charges a 2% platform fee on each completed sale.<br>
+          4. Sellers must fulfil orders within 3 business days of confirmation.<br>
+          5. JAVSTAY reserves the right to suspend accounts for policy violations.<br>
+          6. Sellers are responsible for their GST filings and tax compliance.<br>
+          7. Product images must be original and not misleading.<br>
+          8. Customer data must not be used for purposes outside this platform.<br>
+          9. JAVSTAY may review and remove listings that violate community standards.<br>
+          10. Payouts are processed weekly after order delivery confirmation.<br>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" name="terms_accepted" id="terms" class="form-check-input" required>
+          <label for="terms" class="form-check-label">
+            I have read and agree to the Seller Terms & Conditions
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 py-3">
+        <i class="bi bi-send me-2"></i>Submit Application
+      </button>
+    </form>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

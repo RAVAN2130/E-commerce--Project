@@ -1,0 +1,133 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JAVSTAY – Order {{ order.invoice_no }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background: #f0f2f5; }
+    .navbar { background: #1a1f2e !important; }
+    .card { border: none; border-radius: 12px; }
+    .step { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+    .step.done { background: #0d6efd; color: white; }
+    .step.active { background: #0d6efd; color: white; box-shadow: 0 0 0 4px #0d6efd33; }
+    .step.inactive { background: #e9ecef; color: #adb5bd; }
+    .step-line { flex: 1; height: 2px; background: #e9ecef; }
+    .step-line.done { background: #0d6efd; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-dark px-4 py-3 d-flex justify-content-between">
+    <a class="navbar-brand fw-bold" href="{% url 'shop' %}"><i class="bi bi-shop me-2"></i>JAVSTAY</a>
+    <a href="{% url 'order_list' %}" class="btn btn-outline-light btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>My Orders
+    </a>
+  </nav>
+
+  <div class="container py-4">
+
+    <!-- Order Status Tracker -->
+    <div class="card p-4 mb-3">
+      <h6 class="fw-bold mb-4">Order Status</h6>
+      <div class="d-flex align-items-center">
+        {% with status=order.status %}
+        <div class="text-center" style="min-width:60px">
+          <div class="step {% if status == 'pending' or status == 'confirmed' or status == 'shipped' or status == 'delivered' %}done{% else %}inactive{% endif %} mx-auto mb-1">
+            <i class="bi bi-check"></i>
+          </div>
+          <div style="font-size:11px">Placed</div>
+        </div>
+        <div class="step-line {% if status == 'confirmed' or status == 'shipped' or status == 'delivered' %}done{% endif %}"></div>
+        <div class="text-center" style="min-width:60px">
+          <div class="step {% if status == 'confirmed' or status == 'shipped' or status == 'delivered' %}done{% else %}inactive{% endif %} mx-auto mb-1">
+            <i class="bi bi-check"></i>
+          </div>
+          <div style="font-size:11px">Confirmed</div>
+        </div>
+        <div class="step-line {% if status == 'shipped' or status == 'delivered' %}done{% endif %}"></div>
+        <div class="text-center" style="min-width:60px">
+          <div class="step {% if status == 'shipped' or status == 'delivered' %}done{% elif status == 'shipped' %}active{% else %}inactive{% endif %} mx-auto mb-1">
+            <i class="bi bi-truck"></i>
+          </div>
+          <div style="font-size:11px">Shipped</div>
+        </div>
+        <div class="step-line {% if status == 'delivered' %}done{% endif %}"></div>
+        <div class="text-center" style="min-width:60px">
+          <div class="step {% if status == 'delivered' %}done{% else %}inactive{% endif %} mx-auto mb-1">
+            <i class="bi bi-house-check"></i>
+          </div>
+          <div style="font-size:11px">Delivered</div>
+        </div>
+        {% endwith %}
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <!-- Invoice Details -->
+      <div class="col-md-8">
+        <div class="card p-4 mb-3">
+          <div class="d-flex justify-content-between mb-3">
+            <div>
+              <h6 class="fw-bold mb-0">{{ order.invoice_no }}</h6>
+              <div class="text-muted small">Placed on {{ order.created_at|date:"d M Y, H:i" }}</div>
+            </div>
+            <div class="text-end">
+              <div class="small text-muted">Tracking ID</div>
+              <div class="fw-bold text-primary">{{ order.tracking_id }}</div>
+            </div>
+          </div>
+
+          <table class="table table-sm">
+            <thead class="table-light">
+              <tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+              {% for item in order.order_items.all %}
+              <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ item.unit_price }}</td>
+                <td>₹{{ item.line_total }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <div class="text-end mt-2">
+            <div class="text-muted small">Subtotal: ₹{{ order.subtotal }}</div>
+            <div class="text-muted small">Discount: ₹{{ order.discount_amount }}</div>
+            <div class="fw-bold fs-5 text-primary">Grand Total: ₹{{ order.grand_total }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery & Payment Info -->
+      <div class="col-md-4">
+        <div class="card p-4 mb-3">
+          <h6 class="fw-bold mb-3">Delivery Address</h6>
+          <p class="mb-1 fw-bold">{{ order.full_name }}</p>
+          <p class="text-muted small mb-1">{{ order.address }}</p>
+          <p class="text-muted small mb-1">{{ order.city }} — {{ order.pincode }}</p>
+          <p class="text-muted small mb-0">{{ order.phone }}</p>
+        </div>
+        <div class="card p-4">
+          <h6 class="fw-bold mb-3">Payment</h6>
+          <p class="mb-1">{{ order.get_payment_method_display }}</p>
+          <p class="text-muted small mb-0">
+            Status:
+            {% if order.status == 'delivered' %}
+              <span class="badge bg-success">Paid</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">Pending</span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
